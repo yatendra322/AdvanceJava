@@ -1,0 +1,3 @@
+Rete Limitor
+	This functionality allows limiting access to some service.
+	Rate Limitor make services highly available by limiting the number of call we could process in specific windows.

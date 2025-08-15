@@ -5,6 +5,7 @@ import com.main.user.services.entities.User;
 import com.main.user.services.services.UserService;
 import com.main.user.services.services.impl.UserServiceImpl;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.ratelimiter.annotation.RateLimiter;
 import io.github.resilience4j.retry.annotation.Retry;
 import org.aspectj.lang.annotation.Around;
 import org.slf4j.Logger;
@@ -37,7 +38,8 @@ public class UserController {
     // Single user get
     @GetMapping("/{userId}")
     //@CircuitBreaker(name = "ratingHotelBreaker", fallbackMethod = "ratingHotelFallBack") // is for service dependencies userService->ratingService->hotelService
-    @Retry(name = "ratingHotelService",fallbackMethod = "retringHotelFallBake")
+    //@Retry(name = "ratingHotelService",fallbackMethod = "retringHotelFallBake")
+    @RateLimiter(name = "userRateLimiter", fallbackMethod = "rateLimiterHotelFallBake")
     public ResponseEntity<User> getSingleUser(@PathVariable("userId") String userId) {
         logger.info("Getting single user Handler: UserController");
         logger.info("Retry coutn : {}", retryCount);
@@ -48,6 +50,19 @@ public class UserController {
 
 
     public ResponseEntity<User> retringHotelFallBake(String userId, Exception ex) {
+        //logger.info("FallBack is executed because of service is down", ex.getMessage());
+
+        User user = User.builder()
+                .email("dummy@gmail.com")
+                .name("Dummy")
+                .about("Dummy")
+                .about("Dummy about informations dummy because service is down")
+                .userId("3409583")
+                .build();
+        return new ResponseEntity<>(user, HttpStatus.OK);
+    }
+
+    public ResponseEntity<User> rateLimiterHotelFallBake(String userId, Exception ex) {
         //logger.info("FallBack is executed because of service is down", ex.getMessage());
 
         User user = User.builder()
